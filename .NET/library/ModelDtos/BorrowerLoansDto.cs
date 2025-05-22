@@ -8,7 +8,7 @@ namespace OneBeyondApi.ModelDtos
         public string BorrowerName { get; set; } = string.Empty;
         public string EmailAddress { get; set; } = string.Empty;
         public DateTime LoanEndDate { get; set; }
-        public IList<string> BookTitles { get; set; } = new List<string>();
+        public IList<BookLoanItemDto> BookLoans { get; set; } = new List<BookLoanItemDto>();
 
     }
 }

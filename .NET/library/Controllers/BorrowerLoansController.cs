@@ -29,12 +29,33 @@ namespace OneBeyondApi.Controllers
                 BorrowerName = g.First().OnLoanTo!.Name,
                 EmailAddress = g.First().OnLoanTo!.EmailAddress,
                 LoanEndDate  = g.Min(bs => bs.LoanEndDate!.Value),
-                BookTitles   = g.Select(bs => bs.Book.Name).ToList()
+                BookLoans    = g.Select(bs => new BookLoanItemDto {
+                                BookStockId = bs.Id,
+                                Title = bs.Book.Name}).ToList()
             })
             .ToList();
 
-        return Ok(result);
-    }
+            return Ok(result);
+        }
+
+        [HttpPost("Return/{bookStockId:guid}")]
+        public IActionResult ReturnBook(Guid bookStockId)
+        {
+            try
+            {
+                _borrowerLoansRepository.ReturnBook(bookStockId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = $"BookStock {bookStockId} not found." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+
+        }
 
     }
 

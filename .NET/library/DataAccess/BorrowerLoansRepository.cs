@@ -22,5 +22,25 @@ namespace OneBeyondApi.DataAccess
             }
 
         }
+
+        public void ReturnBook(Guid bookStockId){
+            using (var context = new LibraryContext())
+            {
+                var stock = context.Catalogue
+                .Include(bs => bs.OnLoanTo)
+                .FirstOrDefault(bs => bs.Id == bookStockId);
+
+                if(stock == null){
+                    throw new KeyNotFoundException($"No BookStock with Id {bookStockId}");
+                };
+
+                if (stock.OnLoanTo == null)
+                throw new InvalidOperationException($"BookStock {bookStockId} is not currently on loan");
+
+                stock.OnLoanTo = null;
+                stock.LoanEndDate = null;
+                context.SaveChanges();
+            }
+        }
     }
 }
