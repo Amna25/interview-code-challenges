@@ -39,12 +39,23 @@ namespace OneBeyondApi.Controllers
         }
 
         [HttpPost("Return/{bookStockId:guid}")]
-        public IActionResult ReturnBook(Guid bookStockId)
+        public ActionResult<FineDto?> ReturnBook(Guid bookStockId)
         {
             try
             {
-                _borrowerLoansRepository.ReturnBook(bookStockId);
-                return NoContent();
+                var fine = _borrowerLoansRepository.ReturnBook(bookStockId);
+                if(fine == null){
+                    return NoContent();
+                }
+                var dueFine = new FineDto{
+                   FineId = fine.Id, 
+                   BorrowerId = fine.BorrowerId, 
+                   BookStockId = fine.BookStockId, 
+                   Amount = fine.Amount, 
+                   IssuedDate = fine.IssuedDate, 
+                   Paid = fine.Paid};
+                return Ok(dueFine);
+           
             }
             catch (KeyNotFoundException)
             {
