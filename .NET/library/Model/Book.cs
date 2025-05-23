@@ -7,5 +7,6 @@
         public Author Author { get; set; }
         public BookFormat Format { get; set; }
         public string ISBN { get; set; }
+        public List<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }

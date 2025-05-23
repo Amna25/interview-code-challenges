@@ -29,7 +29,7 @@ namespace OneBeyondApi.Controllers
                 BorrowerName = g.First().OnLoanTo!.Name,
                 EmailAddress = g.First().OnLoanTo!.EmailAddress,
                 LoanEndDate  = g.Min(bs => bs.LoanEndDate!.Value),
-                BookLoans    = g.Select(bs => new BookLoanItemDto {
+                BookLoans = g.Select(bs => new BookLoanItemDto {
                                 BookStockId = bs.Id,
                                 Title = bs.Book.Name}).ToList()
             })
@@ -68,7 +68,54 @@ namespace OneBeyondApi.Controllers
 
         }
 
-    }
+        [HttpPost("Reserve")]
+        public ActionResult<ReservationDto> ReserveTitle([FromBody] ReserveTitleDto dto)
+        {
+            try
+            {          
+                var reserve = _borrowerLoansRepository.ReserveTitle(dto.BorrowerId, dto.BookId);
+                var reserveDate = _borrowerLoansRepository.GetAvailability(dto.BorrowerId, dto.BookId);
 
+                var createdReservation = new ReservationDto {
+                    ReservationId = reserve.Id,
+                    Position = _borrowerLoansRepository
+                               .GetReservationQueuePosition(dto.BorrowerId, dto.BookId),
+                    AvailableAt = reserveDate
+                };
+
+                return CreatedAtAction(
+                    nameof(GetAvailability),
+                    new { dto.BorrowerId, dto.BookId },
+                    createdReservation
+                );
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }   
+        }
+
+        [HttpGet("Reserve/Availability")]
+        public ActionResult<ReservationDto> GetAvailability(Guid borrowerId, Guid bookId)
+        {
+            try
+            {
+                var availableDate = _borrowerLoansRepository.GetAvailability(borrowerId, bookId);
+                var positionInQueue  = _borrowerLoansRepository
+                       .GetReservationQueuePosition(borrowerId, bookId);
+
+                return Ok(new ReservationDto {
+                    ReservationId = Guid.Empty,
+                    Position = positionInQueue,
+                    AvailableAt = availableDate
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { ex.Message });
+            }
+        }
+
+    }
     
 }
